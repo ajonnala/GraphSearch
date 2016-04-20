@@ -31,33 +31,47 @@ def getNeighbors(v,g):
     
 ########### heuristics #############
 
-def h(s,e):
+def h(n,g):
     return 0
 
-def h_reverse(s,e):
+def h_reverse(n,g):
     return 0
 
 
 
-def astar(start,goal,pq,graph,path,depth):
+def astar(start,goal,pq,graph,paths,nodes_expanded):
     #base case
     if (start == goal):
-	return path,depth
+	return paths,nodes_expanded
 
     neighbors = getNeighbors(start,graph)
+    #case where we are at the original start node
+    if (not(start in paths)):
+	paths[start] = (0,[0])  
+    (current_pathWeight,current_path) = paths[start]
     for node in neighbors:
 	(e,w) = node
-	pq.put(((e,w),w+h(start,node[0])))
+        if (e in paths):
+	     (pathWeight,p) = paths[e]
+	     if ( pathWeight > (current_pathWeight + w)):
+		paths[e] = (current_pathWeight+w,current_path + [e])
+                pq.put((current_pathWeight+w+h(e,goal),e))
+             #else:
+		#dont think i need to add to pq in this case cause it should aldredy be in there
+        else:
+	     paths[e] = (current_pathWeight+w,current_path + [e])
+	     pq.put((current_pathWeight+w +h(e,goal),e))
+
   
     #STUCK AND FOUND NO PATH
     if pq.empty():
-    	return -1,depth
+    	return -1,nodes_expanded
 
 
     #recursive case
     nextNode = pq.get()
-    path += [nextNode] 
-    return astar(nextNode[0][0],goal,pq,graph,path,depth+1) 
+    print(nextNode)
+    return astar(nextNode[1],goal,pq,graph,paths,nodes_expanded + 1) 
 
 
 #one_node and two_node should be initialized to start and goal
@@ -136,14 +150,22 @@ def makeGraph(graph):
     node0 = createNode(0)
     node1 = createNode(1)
     node2 = createNode(2)
-    
+    node3 = createNode(3)
+    node4 = createNode(4)
+
+   
     addNode(node0,graph)
     addNode(node1,graph)
     addNode(node2,graph)
+    addNode(node3,graph)
+    addNode(node4,graph)
 
-    addEdge(node0,node1,3,graph)
-    addEdge(node0,node2,8,graph)
-    addEdge(node1,node2,3,graph)
+
+    addEdge(node0,node1,8,graph)
+    addEdge(node0,node2,1,graph)
+    addEdge(node2,node3,20,graph)
+    addEdge(node3,node4,1,graph)
+    addEdge(node1,node3,1,graph)
 
 
 ############### Main Function ################
@@ -152,10 +174,10 @@ def main(argv = None):
     makeGraph(graph)
     print(graph)
     pq = Q.PriorityQueue()
-    path,depth = astar(0,2,pq,graph,[],0)
-    final_path = getPath(path,0,2)
-    cost = totalCost(path)
-    print(final_path,cost,depth)
+    path,depth = astar(0,4,pq,graph,dict(),0)
+    #final_path = getPath(path,0,2)
+    #cost = totalCost(path)
+    print(path,depth)
 
 
 if __name__ == "__main__": main()
