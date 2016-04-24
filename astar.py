@@ -104,39 +104,6 @@ def bidirectional_astar(start,goal,node1,node2,pq1,pq2,graph1,graph2,paths1,path
 
     return bidirectional_astar(start,goal,nn1,nn2,pq1,pq2,graph1,graph2,paths1,paths2,nodes_expanded)
 
-
-def astarOld(start,goal,pq,graph,paths,nodes_expanded):
-    #base case
-    if (start == goal):
-	return paths[goal],nodes_expanded
-
-    neighbors = getNeighbors(start,graph)
-    #case where we are at the original start node
-    if (not(start in paths)):
-	paths[start] = (0,[0])  
-    (current_pathWeight,current_path) = paths[start]
-    for node in neighbors:
-	(e,w) = node
-        if (e in paths):
-	     (pathWeight,p) = paths[e]
-	     if ( pathWeight > (current_pathWeight + w)):
-		paths[e] = (current_pathWeight+w,current_path + [e])
-                pq.put((current_pathWeight+w+h(e,goal),e))
-        else:
-	     paths[e] = (current_pathWeight+w,current_path + [e])
-	     pq.put((current_pathWeight+w +h(e,goal),e))
-
-  
-    #STUCK AND FOUND NO PATH
-    if pq.empty():
-    	return -1,nodes_expanded
-
-
-    #recursive case
-    nextNode = pq.get()
-    return astar(nextNode[1],goal,pq,graph,paths,nodes_expanded + 1) 
-
-
 	
 
 ###############Testing helper function ##############
