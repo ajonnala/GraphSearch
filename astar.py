@@ -56,7 +56,6 @@ def astar_step(start,goal,pq,graph,paths,nodes_expanded):
              paths[e] = (current_pathWeight+w,current_path + [e])
              pq.put((current_pathWeight+w +h(e,goal),e))
 
-
     #STUCK AND FOUND NO PATH
     if pq.empty():
         return -1,-1,-1,-1,-1,nodes_expanded
@@ -66,7 +65,7 @@ def astar_step(start,goal,pq,graph,paths,nodes_expanded):
     nextNode = pq.get()
     return nextNode[1],goal,pq,graph,paths,nodes_expanded + 1
 
-
+#regular astar
 def astar(start,goal,pq,graph,paths,nodes_expanded):
     if (start == goal):
 	return paths[goal],nodes_expanded
@@ -76,7 +75,19 @@ def astar(start,goal,pq,graph,paths,nodes_expanded):
 	return -1,nodes_expanded
     return astar(nn,goal,pq,graph,paths,nodes_expanded) 	
 
-def bidirectional_astar(start,goal,node1,node2,pq1,pq2,graph1,graph2,paths1,paths2,nodes_expanded):
+#astar with multiple goals
+def multi_astar(start,goal_list,pq,graph,paths,nodes_expanded):
+    if (start in goal_list):
+	return paths[start],nodes_expanded
+
+    nn,goal_list,pq,graph,paths,nodes_expanded = astar_step(start,goal_list,pq,graph,paths,nodes_expanded)
+    if (nn == -1):
+        return -1,nodes_expanded
+    return multi_astar(nn,goal_list,pq,graph,paths,nodes_expanded)
+
+
+#bidirectional astar
+def bidirectional_astar(start,goal,node1,node2,pq1,pq2,graph1,graph2,paths1,paths2,nodes_expanded,n1_list,n2_list):
     #base cases
     if (node1 == node2):
 	(w1,p1) = paths1[node1]
@@ -84,8 +95,26 @@ def bidirectional_astar(start,goal,node1,node2,pq1,pq2,graph1,graph2,paths1,path
         p2.reverse()
         return ((w1+w2,p1 + p2[1:]),nodes_expanded)
 
+    #if direction 1 finds a node visited by direction 2
+    if (node1 in n2_list):
+	(w1,p1) = paths1[node1]
+	(w2,p2) = paths2[node1]
+	p2.reverse()
+	return ((w1+w2,p1 + p2[1:]),nodes_expanded)
+
+
+    #if direction 2 finds a node visited by direction 2
+    if (node2 in n1_list):
+        (w1,p1) = paths1[node2]
+	(w2,p2) = paths2[node2]
+        p2.reverse()
+        return ((w1+w2,p1 + p2[1:]),nodes_expanded)
+
     #ALSO WORRY ABOUT OTHER BASE CASES, when paths dont meet and one finishes before the other
     # if direction 2 finishes before direction 2 its not a valid path !!
+
+
+
  
     #direction 1
     nn1,end1,pq1,graph1,paths1,nodes_expanded = astar_step(node1,goal,pq1,graph1,paths1,nodes_expanded)
@@ -97,12 +126,16 @@ def bidirectional_astar(start,goal,node1,node2,pq1,pq2,graph1,graph2,paths1,path
 
     #if direction 1 finishes with no path, there is none
     if (nn1 == -1):
-	retuen -1, nodes_expanded
+	return -1, nodes_expanded
+    
+    #adding visited nodes
+    n1_list += [nn1]
+    n2_list += [nn2]
 
     #cases where one path does not find the goal, while the other still has nodes to search
     #FILL IN CASES WHERE EITHER NN1 = -1 OR NN2 = -1 BY ALTERNATIVELY CALLING JUST THE OLD ONES AGAIN OR JUST CALLING ASTAR ON THE REST
 
-    return bidirectional_astar(start,goal,nn1,nn2,pq1,pq2,graph1,graph2,paths1,paths2,nodes_expanded)
+    return bidirectional_astar(start,goal,nn1,nn2,pq1,pq2,graph1,graph2,paths1,paths2,nodes_expanded,n1_list,n2_list)
 
 	
 
@@ -213,18 +246,18 @@ def makeReverseGraph2(graph):
 def main(argv = None):
     graph = newGraph()
     graph_rev = newGraph()
-    makeGraph2(graph)
-    makeReverseGraph2(graph_rev)
+    makeGraph(graph)
+    makeReverseGraph(graph_rev)
     print(graph)
     pq = Q.PriorityQueue()
     pq1 = Q.PriorityQueue()
     pq2 = Q.PriorityQueue()
 
-    start = 3
-    goal = 0
+    start = 0
+    goal = 5
 
     path,depth = astar(start,goal,pq,graph,dict(),0)
-    path2,depth2 = bidirectional_astar(start,goal,start,goal,pq1,pq2,graph,graph_rev,dict(),dict(),0)
+    path2,depth2 = bidirectional_astar(start,goal,start,goal,pq1,pq2,graph,graph_rev,dict(),dict(),0,[],[])
     print(path,depth)
     print(path2,depth2)
 
