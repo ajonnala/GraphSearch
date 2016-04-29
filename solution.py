@@ -1,6 +1,8 @@
 import lp
 import astar
 import Queue as Q
+from scipy.optimize import linprog
+import numpy as np
 
 graph = astar.get_graph()
 rev_graph = astar.get_rev_graph()
@@ -108,8 +110,9 @@ def make_bb_graph(n,weights):
 
 
 #CHANGE TO ACTUAL LP CODE
-def solve_lp(c,A,b):
-	return 0
+def solve_lp(c,A,b,bounds):
+    res = linprog(c, A_eq=A, b_eq=b, bounds=bounds)
+    return res['fun']
 
 
 def lp_h(path,dirc):
@@ -122,14 +125,14 @@ def lp_h(path,dirc):
 		(a,b) = ele
 		global A1,b1
 		A1,b1 = lp.add_constraint(A1,b1,varsb1,a,b)
-        return solve_lp(c1,A1,b1)
+        return solve_lp(c1,A1,b1,bounds1)
 
     else:
 	for ele in cons_list:
 		(a,b) = ele
 		global A2,b2
 		A2,b2 = lp.add_constraint(A2,b2,varsb2,a,b)
-	return solve_lp(c2,A2,b2)
+	return solve_lp(c2,A2,b2, bounds2)
 
 
 def print_comp(p1,p2):
