@@ -139,8 +139,8 @@ def create_graph(n,weights):
 def add_constraint(A,b,varsb,i,j):
     c = []
     for ele in varsb:
-	(a,b) = ele
-	if ((a==i) and (b == j)):
+	(l,m) = ele
+	if ((l==i) and (m== j)):
 		c += [1]
 	else:
 		c += [0]

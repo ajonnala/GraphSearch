@@ -20,8 +20,10 @@ def get_route(start,goal_list):
     bi_astar_paths = dict()
     start_list = [start] + goal_list
     node_map = dict()
+    rev_map = dict()
     for i in xrange(0,len(start_list)):
 	node_map[start_list[i]] = i
+        rev_map[i] = start_list[i]
  
     for i in start_list:
 	for j in start_list:
@@ -35,13 +37,35 @@ def get_route(start,goal_list):
 
 
     n = len(start_list)
+    global c1,A1,b1,bounds1,varsb1,c2,A2,b2,bounds2,varsb2
     c1,A1,b1,bounds1,varsb1= lp.get_constraints(n,weights)
     c2,A2,b2,bounds2,varsb2 = lp.get_constraints(n,bi_weights)
  
-    g_cont = make_bb_graph(n,weights)
+    g_cont1 = make_bb_graph(n,weights)
+    g_cont2 = make_bb_graph(n,bi_weights)
+    ends = [(i,0) for i in xrange(1,n)]
+    final_path1 = astar.multi_astar_wrapper((0,0),ends,g_cont1,1)
+    final_path2 = astar.multi_astar_wrapper((0,0),ends,g_cont2,2)
+
+    #map back to original nodes:
+    ((f_w1,f_p1),f_n_e1) = final_path1
+    map_final1 = [(rev_map[0],[])]
+    prev = 0
+    for i in xrange(1,len(f_p1)):
+	ele = f_p1[i]
+	map_final1 += [(rev_map[ele[1]],astar_paths[(rev_map[prev],rev_map[ele[1]])][0])]
+	prev = ele[1]
+
+    ((f_w2,f_p2),f_n_e2) = final_path2
+    map_final2 = [(rev_map[0],[])]
+    prev = 0
+    for i in xrange(1,len(f_p2)):
+        ele = f_p2[i]
+        map_final2 += [(rev_map[ele[1]],bi_astar_paths[(rev_map[prev],rev_map[ele[1]])][0])]
+        prev = ele[1]	
 
    # print_comp(astar_paths,bi_astar_paths)
-    return g_cont
+    return (f_w1,map_final1),(f_w1,map_final2)
 
 
 def bfs_fill(node,n,weights,graph,visited,q,c=0):
@@ -50,14 +74,14 @@ def bfs_fill(node,n,weights,graph,visited,q,c=0):
     neigh = []
     for i in xrange(0,n):
 	if( (i!= node[0]) and (i!= node[1]) and (not(i in visited[node]))):
-		neigh += [(weights[node[1],i],(node[1],i))]
+		neigh += [((node[1],i),weights[(node[1],i)])]
 			
    #add to each visited and put in queue
     graph[node] = neigh
     for n_t in neigh:
-	(w,(s,d)) = n_t
+	((s,d),w) = n_t
 	l = visited[node] + [d]
-	visited[n_t[1]] = l
+	visited[n_t[0]] = l
         q.put(n_t)
 
 
@@ -68,7 +92,7 @@ def bfs_fill(node,n,weights,graph,visited,q,c=0):
    # print(visited)
     #print(len(neigh))
     next_node = q.get()
-    return bfs_fill(next_node[1],n,weights,graph,visited,q,c+1) 
+    return bfs_fill(next_node[0],n,weights,graph,visited,q,c+1) 
     
 
 
@@ -96,12 +120,14 @@ def lp_h(path,dirc):
     if (dirc == 1):
 	for ele in cons_list:
 		(a,b) = ele
+		global A1,b1
 		A1,b1 = lp.add_constraint(A1,b1,varsb1,a,b)
         return solve_lp(c1,A1,b1)
 
     else:
 	for ele in cons_list:
 		(a,b) = ele
+		global A2,b2
 		A2,b2 = lp.add_constraint(A2,b2,varsb2,a,b)
 	return solve_lp(c2,A2,b2)
 

@@ -234,7 +234,7 @@ def astar_wrapper(start,goal,graph):
 #dirc is 2 for bidirectional astar
 def multi_astar_wrapper(start,goal_list,graph,dirc):
     pq = Q.PriorityQueue()
-    path,depth = multi_astar(start,goal_list,pq,graph,dict(),0)
+    path,depth = multi_astar(start,goal_list,pq,graph,dict(),0,dirc)
     return path,depth
 
 def bi_astar_wrapper(start,goal,graph,graph_rev):
