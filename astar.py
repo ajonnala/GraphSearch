@@ -122,7 +122,7 @@ def h(n,g):
 
 def astar_step(start,goal,pq,graph,paths,nodes_expanded,h_i = -1):
     if( start == -1):
-	return -1,-1,-1,-1,-1,nodes_expanded
+	return -1,goal,pq,graph,paths,nodes_expanded
     neighbors = getNeighbors(start,graph)
     #case where we are at the original start node
     if (not(start in paths)):
@@ -143,7 +143,7 @@ def astar_step(start,goal,pq,graph,paths,nodes_expanded,h_i = -1):
 
     #STUCK AND FOUND NO PATH
     if pq.empty():
-        return -1,-1,-1,-1,-1,nodes_expanded
+        return -1,goal,pq,graph,paths,nodes_expanded
 
 
     #recursive case
