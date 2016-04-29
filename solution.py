@@ -45,9 +45,9 @@ def get_route(start,goal_list):
  
     g_cont1 = make_bb_graph(n,weights)
     g_cont2 = make_bb_graph(n,bi_weights)
-    ends = [(i,0) for i in xrange(1,n)]
-    final_path1 = astar.multi_astar_wrapper((0,0),ends,g_cont1,1)
-    final_path2 = astar.multi_astar_wrapper((0,0),ends,g_cont2,2)
+    ends = [(i,0,n) for i in xrange(1,n)]
+    final_path1 = astar.multi_astar_wrapper((0,0,0),ends,g_cont1,1)
+    final_path2 = astar.multi_astar_wrapper((0,0,0),ends,g_cont2,2)
 
     #map back to original nodes:
     ((f_w1,f_p1),f_n_e1) = final_path1
@@ -70,23 +70,24 @@ def get_route(start,goal_list):
     return (f_w1,map_final1),(f_w1,map_final2)
 
 
-def bfs_fill(node,n,weights,graph,visited,q,c=0):
+def bfs_fill(node,n,weights,graph,visited,q):
 
     #add neighbors
     neigh = []
     for i in xrange(0,n):
 	if( (i!= node[0]) and (i!= node[1]) and (not(i in visited[node]))):
-		neigh += [((node[1],i),weights[(node[1],i)])]
+		neigh += [((node[1],i,node[2]+1),weights[(node[1],i)])]
 			
    #add to each visited and put in queue
     graph[node] = neigh
     for n_t in neigh:
-	((s,d),w) = n_t
+	((s,d,c),w) = n_t
 	l = visited[node] + [d]
 	visited[n_t[0]] = l
         q.put(n_t)
 
 
+	
     #base case
     if (q.empty()):
 	return graph
@@ -94,7 +95,7 @@ def bfs_fill(node,n,weights,graph,visited,q,c=0):
    # print(visited)
     #print(len(neigh))
     next_node = q.get()
-    return bfs_fill(next_node[0],n,weights,graph,visited,q,c+1) 
+    return bfs_fill(next_node[0],n,weights,graph,visited,q) 
     
 
 
@@ -103,9 +104,9 @@ def bfs_fill(node,n,weights,graph,visited,q,c=0):
 def make_bb_graph(n,weights):
     graph = {}
     visited = {}
-    visited[(0,0)] = []
+    visited[(0,0,0)] = []
     q = Q.Queue()
-    return bfs_fill((0,0),n,weights,graph,visited,q)
+    return bfs_fill((0,0,0),n,weights,graph,visited,q)
 	
 
 
@@ -113,7 +114,6 @@ def make_bb_graph(n,weights):
 def solve_lp(c,A,b,bounds):
     res = linprog(c, A_eq=A, b_eq=b, bounds=bounds)
     return res['fun']
-
 
 def lp_h(path,dirc):
     cons_list = []
