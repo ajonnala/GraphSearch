@@ -1,6 +1,8 @@
 #Author: Alekhya Jonnalagedda
 import Queue as Q
 import math
+import solution
+
 ###################graph ##########################
 BuiltGraph = {1 : [40.4378402, -79.9307115, None, 5, 2, None],
               10 : [40.4357557, -79.92765510000001, 6, 14, 11, 9],
@@ -116,11 +118,9 @@ def h(n,g):
     return distanceBetween(n,g)
 
 
-def lp_h():
-	return 0
 
 
-def astar_step(start,goal,pq,graph,paths,nodes_expanded,h_i = 1):
+def astar_step(start,goal,pq,graph,paths,nodes_expanded,h_i = -1):
     if( start == -1):
 	return -1,-1,-1,-1,-1,nodes_expanded
     neighbors = getNeighbors(start,graph)
@@ -134,12 +134,12 @@ def astar_step(start,goal,pq,graph,paths,nodes_expanded,h_i = 1):
              (pathWeight,p) = paths[e]
              if ( pathWeight > (current_pathWeight + w)):
                 paths[e] = (current_pathWeight+w,current_path + [e])
-		if (h_i == 1): pq.put((current_pathWeight+w+h(e,goal),e))
-		else : pq.put((current_pathWeight+w+lp_h(),e))
+		if (h_i == -1): pq.put((current_pathWeight+w+h(e,goal),e))
+		else : pq.put((current_pathWeight+w+solution.lp_h(paths[e][1],h_i),e))
         else:
              paths[e] = (current_pathWeight+w,current_path + [e])
-             if (h_i == 1): pq.put((current_pathWeight+w +h(e,goal),e))
-	     else: pq.put((current_pathWeight + w + lp_h(),e))	     
+             if (h_i == -1): pq.put((current_pathWeight+w +h(e,goal),e))
+	     else: pq.put((current_pathWeight + w + solution.lp_h(paths[e][1],h_i),e))	     
 
     #STUCK AND FOUND NO PATH
     if pq.empty():
@@ -160,14 +160,14 @@ def astar(start,goal,pq,graph,paths,nodes_expanded):
 	return -1,nodes_expanded
     return astar(nn,goal,pq,graph,paths,nodes_expanded) 	
 
-def multi_astar(start,goal_list,pq,graph,paths,nodes_expanded):
+def multi_astar(start,goal_list,pq,graph,paths,nodes_expanded,dirc):
     if (start in goal_list):
 	return paths[start],nodes_expanded
 
-    nn,goal_list,pq,graph,paths,nodes_expanded = astar_step(start,goal_list,pq,graph,paths,nodes_expanded,0)
+    nn,goal_list,pq,graph,paths,nodes_expanded = astar_step(start,goal_list,pq,graph,paths,nodes_expanded,dirc)
     if (nn == -1):
         return -1,nodes_expanded
-    return multi_astar(nn,goal_list,pq,graph,paths,nodes_expanded)
+    return multi_astar(nn,goal_list,pq,graph,paths,nodes_expanded,dirc)
 
 
 #bidirectional astar
@@ -230,7 +230,9 @@ def astar_wrapper(start,goal,graph):
     path,depth = astar(start,goal,pq,graph,dict(),0)
     return path,depth
 
-def multi_astar_wrapper(start,goal_list,graph):
+#dirc is 1 for astar
+#dirc is 2 for bidirectional astar
+def multi_astar_wrapper(start,goal_list,graph,dirc):
     pq = Q.PriorityQueue()
     path,depth = multi_astar(start,goal_list,pq,graph,dict(),0)
     return path,depth

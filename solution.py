@@ -4,6 +4,14 @@ import Queue as Q
 
 graph = astar.get_graph()
 rev_graph = astar.get_rev_graph()
+c1 = []
+A1 = []
+b1 = []
+bounds1 = []
+c2 = []
+A2 = []
+b2 = []
+bounds2 = []
 
 def get_route(start,goal_list):
     weights= dict()
@@ -73,6 +81,29 @@ def make_bb_graph(n,weights):
     q = Q.Queue()
     return bfs_fill((0,0),n,weights,graph,visited,q)
 	
+
+
+#CHANGE TO ACTUAL LP CODE
+def solve_lp(c,A,b):
+	return 0
+
+
+def lp_h(path,dirc):
+    cons_list = []
+    for i in xrange(0,len(path)-1):
+	cons_list += [(path[i][1],path[i+1][1])]
+
+    if (dirc == 1):
+	for ele in cons_list:
+		(a,b) = ele
+		A1,b1 = lp.add_constraint(A1,b1,varsb1,a,b)
+        return solve_lp(c1,A1,b1)
+
+    else:
+	for ele in cons_list:
+		(a,b) = ele
+		A2,b2 = lp.add_constraint(A2,b2,varsb2,a,b)
+	return solve_lp(c2,A2,b2)
 
 
 def print_comp(p1,p2):
