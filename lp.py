@@ -115,7 +115,7 @@ def get_lp(graph,n):
     A,b,varsb= tsp_lp(n)
     c = get_c(graph,varsb)
     bounds = get_bounds(varsb)
-    return c,A,b,bounds
+    return c,A,b,bounds,varsb
 
 
 
@@ -135,22 +135,25 @@ def create_graph(n,weights):
     return graph
 
 
+#adds constraint that x_i,j = 1
+def add_constraint(A,b,varsb,i,j):
+    c = []
+    for ele in varsb:
+	(a,b) = ele
+	if ((a==i) and (b == j)):
+		c += [1]
+	else:
+		c += [0]
+    A += [c]
+    b += [1]
+    return A,b
 
-def test(n):
-    weights = {}
-    for i in xrange(0,n):
-        for j in xrange(0,n):
-                weights[(i,j)] = 1
-    graph = create_graph(n,weights)
-    c,A,b = get_lp(graph,n)
-
-    return c,A,b
 
 #returns constraints for problem
 def get_constraints(n,weights):
     graph = create_graph(n,weights)
-    c,A,b,bounds = get_lp(graph,n)
-    return c,A,b,bounds
+    c,A,b,bounds,varsb = get_lp(graph,n)
+    return c,A,b,bounds,varsb
 
 
 

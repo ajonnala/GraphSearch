@@ -116,8 +116,11 @@ def h(n,g):
     return distanceBetween(n,g)
 
 
+def lp_h():
+	return 0
 
-def astar_step(start,goal,pq,graph,paths,nodes_expanded):
+
+def astar_step(start,goal,pq,graph,paths,nodes_expanded,h_i = 1):
     if( start == -1):
 	return -1,-1,-1,-1,-1,nodes_expanded
     neighbors = getNeighbors(start,graph)
@@ -131,10 +134,12 @@ def astar_step(start,goal,pq,graph,paths,nodes_expanded):
              (pathWeight,p) = paths[e]
              if ( pathWeight > (current_pathWeight + w)):
                 paths[e] = (current_pathWeight+w,current_path + [e])
-                pq.put((current_pathWeight+w+h(e,goal),e))
+		if (h_i == 1): pq.put((current_pathWeight+w+h(e,goal),e))
+		else : pq.put((current_pathWeight+w+lp_h(),e))
         else:
              paths[e] = (current_pathWeight+w,current_path + [e])
-             pq.put((current_pathWeight+w +h(e,goal),e))
+             if (h_i == 1): pq.put((current_pathWeight+w +h(e,goal),e))
+	     else: pq.put((current_pathWeight + w + lp_h(),e))	     
 
     #STUCK AND FOUND NO PATH
     if pq.empty():
@@ -155,6 +160,14 @@ def astar(start,goal,pq,graph,paths,nodes_expanded):
 	return -1,nodes_expanded
     return astar(nn,goal,pq,graph,paths,nodes_expanded) 	
 
+def multi_astar(start,goal_list,pq,graph,paths,nodes_expanded):
+    if (start in goal_list):
+	return paths[start],nodes_expanded
+
+    nn,goal_list,pq,graph,paths,nodes_expanded = astar_step(start,goal_list,pq,graph,paths,nodes_expanded,0)
+    if (nn == -1):
+        return -1,nodes_expanded
+    return multi_astar(nn,goal_list,pq,graph,paths,nodes_expanded)
 
 
 #bidirectional astar
@@ -215,15 +228,17 @@ def bidirectional_astar(start,goal,node1,node2,pq1,pq2,graph1,graph2,paths1,path
 def astar_wrapper(start,goal,graph):
     pq = Q.PriorityQueue()
     path,depth = astar(start,goal,pq,graph,dict(),0)
-#    print('(total weight of astar path,astar path):' + str(path))
- #   print('astar nodes expanded + astar depth:' +'('+ str(depth)+','+str(depth) + ')')
     return path,depth
+
+def multi_astar_wrapper(start,goal_list,graph):
+    pq = Q.PriorityQueue()
+    path,depth = multi_astar(start,goal_list,pq,graph,dict(),0)
+    return path,depth
+
 def bi_astar_wrapper(start,goal,graph,graph_rev):
     pq1 = Q.PriorityQueue()
     pq2 = Q.PriorityQueue()
     path2,nodes2,depth2 = bidirectional_astar(start,goal,start,goal,pq1,pq2,graph,graph_rev,dict(),dict(),0,[],[],0)
-#    print('(bidirectional astar total weight of path,path):' + str(path2))
-#    print('bidirectional astar nodes expanded + depth:' +'('+ str(nodes2)+ ',' + str(depth2) + ')')
     return path2,nodes2,depth2
 
 def main(argv = None):
@@ -231,8 +246,8 @@ def main(argv = None):
     graph_rev = get_rev_graph()
     start = 1
     goal = 9
-    astar_wrapper(start,goal,graph)
-    bi_astar_wrapper(start,goal,graph,graph_rev)
-
-
+    print(astar_wrapper(start,goal,graph))
+    print(bi_astar_wrapper(start,goal,graph,graph_rev))
+    p,d = multi_astar_wrapper(start,[goal]+[5],graph)
+    print(p,d)
 if __name__ == "__main__": main()
