@@ -113,10 +113,8 @@ def getNeighbors(v,g):
 ########### heuristics #############
 
 def h(n,g):
-    return 0
+    return distanceBetween(n,g)
 
-def h_reverse(n,g):
-    return 0
 
 
 def astar_step(start,goal,pq,graph,paths,nodes_expanded):
@@ -156,31 +154,32 @@ def astar(start,goal,pq,graph,paths,nodes_expanded):
 	return -1,nodes_expanded
     return astar(nn,goal,pq,graph,paths,nodes_expanded) 	
 
-#astar with multiple goals
-def multi_astar(start,goal_list,pq,graph,paths,nodes_expanded):
-    if (start in goal_list):
-	return paths[start],nodes_expanded
-
-    nn,goal_list,pq,graph,paths,nodes_expanded = astar_step(start,goal_list,pq,graph,paths,nodes_expanded)
-    if (nn == -1):
-        return -1,nodes_expanded
-    return multi_astar(nn,goal_list,pq,graph,paths,nodes_expanded)
 
 
 #bidirectional astar
-def bidirectional_astar(start,goal,node1,node2,pq1,pq2,graph1,graph2,paths1,paths2,nodes_expanded,n1_list,n2_list):
+def bidirectional_astar(start,goal,node1,node2,pq1,pq2,graph1,graph2,paths1,paths2,nodes_expanded,n1_list,n2_list,depth):
     #base cases
     if (node1 == node2):
 	(w1,p1) = paths1[node1]
         (w2,p2) = paths2[node2]
         p2.reverse()
-        return ((w1+w2,p1 + p2[1:]),nodes_expanded)
+        return ((w1+w2,p1 + p2[1:]),nodes_expanded,depth)
 
+    if (node1 in n2_list):
+        (w1,p1) = paths1[node1]
+        (w2,p2) = paths2[node1]
+        p2.reverse()
+        return ((w1+w2,p1 + p2[1:]),nodes_expanded,depth)
 
-    #ALSO WORRY ABOUT OTHER BASE CASES, when paths dont meet and one finishes before the other
+    if (node2 in n1_list):
+        (w1,p1) = paths1[node2]
+        (w2,p2) = paths2[node2]
+        p2.reverse()
+        return ((w1+w2,p1 + p2[1:]),nodes_expanded,depth)
+
     # if direction 2 finishes before direction 2 its not a valid path !!
     if (node1 == goal):
-	return (paths1[node1],nodes_expanded)
+	return (paths1[node1],nodes_expanded,depth)
 	
  
     #direction 1
@@ -189,11 +188,11 @@ def bidirectional_astar(start,goal,node1,node2,pq1,pq2,graph1,graph2,paths1,path
     nn2,end2,pq2,graph2,paths2,nodes_expanded = astar_step(node2,start,pq2,graph2,paths2,nodes_expanded)
     
     if ((nn1 == -1) and (nn2 == -1)):
-	return -1,nodes_expanded
+	return -1,nodes_expanded,depth
 
     #if direction 1 finishes with no path, there is none
     if (nn1 == -1):
-	return -1, nodes_expanded
+	return -1, nodes_expanded,depth
     
     #adding visited nodes
     n1_list += [nn1]
@@ -202,131 +201,32 @@ def bidirectional_astar(start,goal,node1,node2,pq1,pq2,graph1,graph2,paths1,path
     #cases where one path does not find the goal, while the other still has nodes to search
     #FILL IN CASES WHERE EITHER NN1 = -1 OR NN2 = -1 BY ALTERNATIVELY CALLING JUST THE OLD ONES AGAIN OR JUST CALLING ASTAR ON THE REST
 
-    return bidirectional_astar(start,goal,nn1,nn2,pq1,pq2,graph1,graph2,paths1,paths2,nodes_expanded,n1_list,n2_list)
+    return bidirectional_astar(start,goal,nn1,nn2,pq1,pq2,graph1,graph2,paths1,paths2,nodes_expanded,n1_list,n2_list,depth+1)
 
 	
 
-###############Testing helper function ##############
-
-def makeGraph(graph):
-    node0 = createNode(0)
-    node1 = createNode(1)
-    node2 = createNode(2)
-    node3 = createNode(3)
-    node4 = createNode(4)
-    node5 = createNode(5)
-    node6 = createNode(6)
-    node7 = createNode(7)
-   
-   
-    addNode(node0,graph)
-    addNode(node1,graph)
-    addNode(node2,graph)
-    addNode(node3,graph)
-    addNode(node4,graph)
-    addNode(node5,graph)
-    addNode(node6,graph)
-    addNode(node7,graph)
-
-    addEdge(node0,node7,1,graph)
-    addEdge(node7,node1,1,graph)
-    addEdge(node1,node2,1,graph)
-    addEdge(node2,node7,1,graph)
-    addEdge(node2,node3,1,graph)
-    addEdge(node3,node4,1,graph)
-    addEdge(node3,node5,8,graph)
-    addEdge(node5,node6,1,graph)
-    addEdge(node4,node6,50,graph)
-
-def makeReverseGraph(graph):
-    node0 = createNode(0)
-    node1 = createNode(1)
-    node2 = createNode(2)
-    node3 = createNode(3)
-    node4 = createNode(4)
-    node5 = createNode(5)
-    node6 = createNode(6)
-    node7 = createNode(7)
-
-
-    addNode(node0,graph)
-    addNode(node1,graph)
-    addNode(node2,graph)
-    addNode(node3,graph)
-    addNode(node4,graph)
-    addNode(node5,graph)
-    addNode(node6,graph)
-    addNode(node7,graph)
-
-    addEdge(node7,node0,1,graph)
-    addEdge(node1,node7,1,graph)
-    addEdge(node2,node1,1,graph)
-    addEdge(node7,node2,1,graph)
-    addEdge(node3,node2,1,graph)
-    addEdge(node4,node3,1,graph)
-    addEdge(node5,node3,8,graph)
-    addEdge(node6,node5,1,graph)
-    addEdge(node6,node4,50,graph)
-
-
-def makeGraph2(graph):
-    node0 = createNode(0)
-    node1 = createNode(1)
-    node2 = createNode(2)
-    node3 = createNode(3)
-    node4 = createNode(4)
-
-    addNode(node0,graph)
-    addNode(node1,graph)
-    addNode(node2,graph)
-    addNode(node3,graph)
-    addNode(node4,graph)
-
-    addEdge(node0,node2,1,graph)
-    addEdge(node0,node1,8,graph)
-    addEdge(node2,node3,20,graph)
-    addEdge(node1,node3,1,graph)
-    addEdge(node3,node4,1,graph)
-
-
-def makeReverseGraph2(graph):
-    node0 = createNode(0)
-    node1 = createNode(1)
-    node2 = createNode(2)
-    node3 = createNode(3)
-    node4 = createNode(4)
-
-    addNode(node0,graph)
-    addNode(node1,graph)
-    addNode(node2,graph)
-    addNode(node3,graph)
-    addNode(node4,graph)
-
-    addEdge(node2,node0,1,graph)
-    addEdge(node1,node0,8,graph)
-    addEdge(node3,node2,20,graph)
-    addEdge(node3,node1,1,graph)
-    addEdge(node4,node3,1,graph)
-
-
 ############### Main Function ################
-def main(argv = None):
-    graph = newGraph()
-    graph_rev = newGraph()
-    makeGraph(graph)
-    makeReverseGraph(graph_rev)
-    print(graph)
+def astar_wrapper(start,goal,graph):
     pq = Q.PriorityQueue()
+    path,depth = astar(start,goal,pq,graph,dict(),0)
+#    print('(total weight of astar path,astar path):' + str(path))
+ #   print('astar nodes expanded + astar depth:' +'('+ str(depth)+','+str(depth) + ')')
+    return path,depth
+def bi_astar_wrapper(start,goal,graph,graph_rev):
     pq1 = Q.PriorityQueue()
     pq2 = Q.PriorityQueue()
+    path2,nodes2,depth2 = bidirectional_astar(start,goal,start,goal,pq1,pq2,graph,graph_rev,dict(),dict(),0,[],[],0)
+#    print('(bidirectional astar total weight of path,path):' + str(path2))
+#    print('bidirectional astar nodes expanded + depth:' +'('+ str(nodes2)+ ',' + str(depth2) + ')')
+    return path2,nodes2,depth2
 
-    start = 0
-    goal = 5
-
-    path,depth = astar(start,goal,pq,graph,dict(),0)
-    path2,depth2 = bidirectional_astar(start,goal,start,goal,pq1,pq2,graph,graph_rev,dict(),dict(),0,[],[])
-    print(path,depth)
-    print(path2,depth2)
+def main(argv = None):
+    graph = get_graph()
+    graph_rev = get_rev_graph()
+    start = 1
+    goal = 9
+    astar_wrapper(start,goal,graph)
+    bi_astar_wrapper(start,goal,graph,graph_rev)
 
 
 if __name__ == "__main__": main()

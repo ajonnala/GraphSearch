@@ -126,15 +126,21 @@ def create_graph(n,weights):
     return graph
 
 
-#returns constraints for problem
-def get_constraints(n):
+
+def test(n):
     weights = {}
     for i in xrange(0,n):
-	for j in xrange(0,n):
-		weights[(i,j)] = 1
+        for j in xrange(0,n):
+                weights[(i,j)] = 1
     graph = create_graph(n,weights)
     c,A,b = get_lp(graph,n)
 
+    return c,A,b
+
+#returns constraints for problem
+def get_constraints(n,weights):
+    graph = create_graph(n,weights)
+    c,A,b = get_lp(graph,n)
     return c,A,b
 
 
