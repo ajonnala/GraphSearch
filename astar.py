@@ -118,7 +118,8 @@ def h(n,g):
 
 
 def astar_step(start,goal,pq,graph,paths,nodes_expanded):
-
+    if( start == -1):
+	return -1,-1,-1,-1,-1,nodes_expanded
     neighbors = getNeighbors(start,graph)
     #case where we are at the original start node
     if (not(start in paths)):
@@ -180,7 +181,12 @@ def bidirectional_astar(start,goal,node1,node2,pq1,pq2,graph1,graph2,paths1,path
     # if direction 2 finishes before direction 2 its not a valid path !!
     if (node1 == goal):
 	return (paths1[node1],nodes_expanded,depth)
-	
+    
+    if (node2 == start):
+	(w1,p1) = paths2[node2]
+        p1.reverse()
+	return ((w1,p1),nodes_expanded,depth)	
+
  
     #direction 1
     nn1,end1,pq1,graph1,paths1,nodes_expanded = astar_step(node1,goal,pq1,graph1,paths1,nodes_expanded)

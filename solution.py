@@ -27,12 +27,11 @@ def get_route(start,goal_list):
 
 
     n = len(start_list)
-    print(weights)
-    c1,A1,b1 = lp.get_constraints(n,weights)
-    c2,A2,b2 = lp.get_constraints(n,bi_weights)
+    c1,A1,b1,bounds = lp.get_constraints(n,weights)
+    c2,A2,b2,bounds1 = lp.get_constraints(n,bi_weights)
  
-    #print_comp(astar_paths,bi_astar_paths)
-    return c1,A1,b1,c2,A2,b2
+    print_comp(astar_paths,bi_astar_paths)
+    return c1,A1,b1,bounds,c2,A2,b2,bounds1
 
 def print_comp(p1,p2):
     for key in p1:

@@ -100,13 +100,22 @@ def get_c(graph,varsb):
     return np.array(c)
 
 
-
+def get_bounds(varsb):
+    bounds = []
+    for ele in varsb:
+	(a,b) = ele
+	if ((a >= 0) and (b >= 0)):
+		bounds += [(0,1)]
+        else:
+		bounds += [(0,None)]
+    return tuple(bounds)
 
 #return c,A,b
 def get_lp(graph,n):
     A,b,varsb= tsp_lp(n)
     c = get_c(graph,varsb)
-    return c,A,b
+    bounds = get_bounds(varsb)
+    return c,A,b,bounds
 
 
 
@@ -140,8 +149,8 @@ def test(n):
 #returns constraints for problem
 def get_constraints(n,weights):
     graph = create_graph(n,weights)
-    c,A,b = get_lp(graph,n)
-    return c,A,b
+    c,A,b,bounds = get_lp(graph,n)
+    return c,A,b,bounds
 
 
 
