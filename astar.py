@@ -21,6 +21,18 @@ def addEdge(s,e,w,g):
     else:
 	g[s] = [(e,w)]
 
+#returns 0 is there is no such edge
+def get_edge_weight(s,d,g):
+    if (s in g):
+	neigh = g[s]	
+	for ele in neigh:
+	    (e,w) = ele
+	    if (e == d):
+		return w
+        return 0
+    else:
+	return 0
+
 def getNeighbors(v,g):
     if v in g:
     	return g[v]
